@@ -18,6 +18,50 @@
     <script type="text/javascript" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
     <link rel="stylesheet" type="text/css" href="static/main.css">
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+
+    <script src="/static/jquery.nameBadges.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket;
+        $(document).ready(function() {
+          function createMessage(authorName, message, time){
+            var html = '<li class="left clearfix">'
+            html += '<div class="name">' + authorName +'</div>'
+            html +='<div class="chat-body1 clearfix">'
+            html += '<p>' + message + '</p>'
+            html += '<div class="chat_time pull-right">' + time + '</div></div></li>'
+            $('#messageChat').append(html)
+            $('.name').nameBadge({
+                border: {
+                          color: '#ddd',
+                          width: 3
+                        },
+                colors: ['#a3a948'],
+                text: '#fff',
+                size: 50,
+                margin: 5,
+                middlename: true,
+                uppercase: false
+              });
+
+          }
+          var namespace = '/test';
+          var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+          socket.on('connect', function() {
+                // socket.emit('message', {data: 'I\'m connected!'});
+            });
+          socket.on('response', function(msg) {
+                console.log(msg)
+                createMessage(msg.username, msg.data, msg.datetime)
+                $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
+            });
+          $('#sendMessage').click(function(e) {
+            e.preventDefault();
+              socket.emit('message', {data: $('#messageText').val()});
+              $('#messageText').val('');
+            });
+          });
+</script>
 </head>
 <script src="https://use.fontawesome.com/45e03a14ce.js"></script>
 <div class="main_section">
@@ -54,132 +98,7 @@
             </div>
             <div class="member_list">
                <ul class="list-unstyled">
-                  <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                  <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right ">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                  <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                          <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                  <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                  <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                          <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                          <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
-                          <li class="left clearfix">
-                     <span class="chat-img pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body clearfix">
-                        <div class="header_sec">
-                           <strong class="primary-font">Jack Sparrow</strong> <strong class="pull-right">
-                           09:45AM</strong>
-                        </div>
-                        <div class="contact_sec">
-                           <strong class="primary-font">(123) 123-456</strong> <span class="badge pull-right">3</span>
-                        </div>
-                     </div>
-                  </li>
+
                </ul>
             </div></div>
          </div>
@@ -203,67 +122,19 @@
        </div><!--new_message_head-->
 
        <div class="chat_area">
-       <ul class="list-unstyled">
-       <li class="left clearfix">
-                     <span class="chat-img1 pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body1 clearfix">
-                        <p>Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia.</p>
-                  <div class="chat_time pull-right">09:40PM</div>
-                     </div>
-                  </li>
-               <li class="left clearfix">
-                     <span class="chat-img1 pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body1 clearfix">
-                        <p>Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia.</p>
-                  <div class="chat_time pull-right">09:40PM</div>
-                     </div>
-                  </li>
-                     <li class="left clearfix">
-                     <span class="chat-img1 pull-left">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body1 clearfix">
-                        <p>Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia.</p>
-                  <div class="chat_time pull-right">09:40PM</div>
-                     </div>
-                  </li>
-              <li class="left clearfix admin_chat">
-                     <span class="chat-img1 pull-right">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body1 clearfix">
-                        <p>Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia.</p>
-                  <div class="chat_time pull-left">09:40PM</div>
-                     </div>
-                  </li>
-                  <li class="left clearfix admin_chat">
-                     <span class="chat-img1 pull-right">
-                     <img src="https://lh6.googleusercontent.com/-y-MY2satK-E/AAAAAAAAAAI/AAAAAAAAAJU/ER_hFddBheQ/photo.jpg" alt="User Avatar" class="img-circle">
-                     </span>
-                     <div class="chat-body1 clearfix">
-                        <p>Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia.</p>
-                  <div class="chat_time pull-left">09:40PM</div>
-                     </div>
-                  </li>
-
-
-
-
+       <ul class="list-unstyled" id='messageChat'>
+       
        </ul>
        </div><!--chat_area-->
           <div class="message_write">
-       <textarea class="form-control" placeholder="type a message"></textarea>
-       <div class="clearfix"></div>
-       <div class="chat_bottom"><a href="#" class="pull-left upload_btn"><i class="fa fa-cloud-upload" aria-hidden="true"></i>
- Add Files</a>
- <a href="#" class="pull-right btn btn-success">
- Send</a></div>
-       </div>
-       </div>
+           <textarea class="form-control" id='messageText' placeholder="type a message"></textarea>
+             <div class="clearfix"></div>
+               <div class="chat_bottom">
+                <a href="#" class="pull-right btn btn-success" >Send</a>
+                <button type="button" class="btn btn-default" id='sendMessage'>Default</button>
+               </div>
+             </div>
+           </div>
          </div> <!--message_section-->
       </div>
    </div>
