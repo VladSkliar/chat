@@ -7,7 +7,7 @@ import datetime
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
-socketio = SocketIO()
+socketio = SocketIO(app)
 
 
 def login_required(f):
@@ -104,5 +104,6 @@ def test_message(message):
 
 
 if __name__ == '__main__':
-    socketio.init_app(app)
-    socketio.run(app)
+    #socketio.init_app(app)
+    #socketio.run(app)
+    app.run()
