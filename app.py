@@ -1,9 +1,10 @@
 from flask import Flask, render_template, session, request, redirect, url_for
 from flask_socketio import SocketIO
-from models import User
+from models import User, Room
 from functools import wraps
 from flask_socketio import emit, join_room
 import datetime
+from flask import jsonify
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
@@ -71,9 +72,11 @@ def logout():
     return redirect(url_for('login'))
 
 
-@socketio.on('my_ping', namespace='/test')
-def ping_pong():
-    emit('my_response', {'data': 'PING-Pong'}, room='general')
+@app.route('/find_room', methods=['POST'])
+def find_room():
+    roomname = request.form['roomname']
+    rooms = Room.select().where(Room.name**roomname)
+    return jsonify([room.to_dict() for room in rooms])
 
 
 @socketio.on('connect', namespace='/test')
