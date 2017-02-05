@@ -34,9 +34,9 @@ class Room(BaseModel):
 def init_db():
     try:
         db.connect()
-        map(lambda l: db.drop_table(l, True, True), [User, Room])
+        map(lambda l: db.drop_table(l, True, True), [Room])
         print "tables dropped"
-        [m.create_table() for m in [User, Room]]
+        [m.create_table() for m in [Room]]
         print "tables created"
     except:
         db.rollback()

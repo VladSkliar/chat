@@ -22,8 +22,8 @@
 
     <script src="/static/jquery.nameBadges.js"></script>
     <script type="text/javascript" charset="utf-8">
-        var socket;
         $(document).ready(function() {
+
           function createMessage(authorName, message, time){
             var html = '<li class="left clearfix">'
             html += '<div class="name">' + authorName +'</div>'
@@ -43,24 +43,102 @@
                 middlename: true,
                 uppercase: false
               });
-
           }
+
+          function createRoomLi(name, create){
+            var html = ''
+            if(create){
+            html = '<li class="left clearfix"><div class="chat-body clearfix"><div class="header_sec"><strong class="primary-font" id="roomName">'
+            html += name
+              html += '<button type="button" data-name='+ name +' class="pull-right btn btn-success" id="createRoomButton">Create</button></strong></div></div><p>Room with that name isn`t created. You can create room</p></li>'
+            }else{
+              html = '<li class="left clearfix changeRoom"><div class="chat-body clearfix"><div class="header_sec"><strong class="primary-font" id="roomName">'
+              html += name
+              html += '</strong></div></div></li>'
+            }
+            return html
+          }
+
+          function createRoomList(rooms, searhValue){
+            console.log(rooms, searhValue)
+            var html = ''
+            if (rooms.length == 0){
+              html += createRoomLi(searhValue, true)
+            }else{
+              for (var i=0; i<rooms.length; i++){
+              html += createRoomLi(rooms[i].name, false)
+            }
+            }
+            $('#chatRooms').empty();
+            $('#chatRooms').append(html)
+            $('#createRoomButton').click(function(e) {
+              e.preventDefault();
+              console.log($(this).attr('data-name'));
+              $.ajax({
+                method: "POST",
+                url: "/create_room",
+                data: { roomname: $(this).attr('data-name')}
+              }).done(function( msg ) {
+                console.log(msg)
+                  createRoomListMessage(msg['message'])
+                });
+              });
+            $('.changeRoom').click(function(e) {
+              e.preventDefault();
+              socket.emit('change_room', {roomname: $(this).find('#roomName').text()});
+            });
+          }
+
+          function createRoomListMessage(msg){
+            var html = '<p>' + msg + '</p>'
+            $('#chatRooms').empty();
+            $('#chatRooms').append(html)
+          }
+
           var namespace = '/test';
           var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
           socket.on('connect', function() {
                 // socket.emit('message', {data: 'I\'m connected!'});
             });
+
           socket.on('response', function(msg) {
                 console.log(msg)
+                if($('#chatName').text()!==msg.roomname){
+                  $('#chatName').text(msg.roomname)
+                  $('#messageChat').empty()
+                }
+                if ($('#chatName').text()== 'general'){
+                  $('#leaveRoomButton').hide()
+                }else{
+                  $('#leaveRoomButton').show()
+                }
                 createMessage(msg.username, msg.data, msg.datetime)
                 $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
             });
+
           $('#sendMessage').click(function(e) {
             e.preventDefault();
               socket.emit('message', {data: $('#messageText').val()});
               $('#messageText').val('');
             });
+
+          $('#searchRoom').on('input', function() {
+            var searchValue = $(this).val()
+            $.ajax({
+              method: "POST",
+              url: "/find_room",
+              data: { roomname: searchValue}
+            }).done(function( msg ) {
+                createRoomList(msg, searchValue)
+              });
           });
+          $('#leaveRoomButton').click(function(e) {
+            e.preventDefault();
+              socket.emit('leave');
+            });
+
+        });
 </script>
 </head>
 <script src="https://use.fontawesome.com/45e03a14ce.js"></script>
@@ -71,15 +149,15 @@
        <div class="row">
             <div id="custom-search-input">
                <div class="input-group col-md-12">
-                  <input type="text" class="  search-query form-control" placeholder="Conversation" />
+                  <input type="text" class="  search-query form-control" placeholder="Find room" id='searchRoom' />
                   <button class="btn btn-danger" type="button">
                   <span class=" glyphicon glyphicon-search"></span>
                   </button>
                </div>
             </div>
             <div class="member_list">
-               <ul class="list-unstyled">
-
+               <ul class="list-unstyled" id='chatRooms'>
+                  
                </ul>
             </div></div>
          </div>
@@ -88,8 +166,14 @@
 
          <div class="col-sm-9 message_section">
        <div class="row">
-       <div class="new_message_head">
-       <div class="pull-right"><a href="/logout"><button><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</button></a></div><div class="pull-right"></div>
+         <div class="new_message_head">
+           <div class="pull-right">
+             <a href="/logout">
+              <button><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</button>
+             </a>
+           </div>
+              <button id='leaveRoomButton'><i class="fa fa-times" aria-hidden="true"></i>Leave room</button>
+         <div class="pull-left">Chat name:</div><div class="pull-left" id='chatName'></div>
        </div><!--new_message_head-->
 
        <div class="chat_area">

@@ -2,7 +2,7 @@ from flask import Flask, render_template, session, request, redirect, url_for
 from flask_socketio import SocketIO
 from models import User, Room
 from functools import wraps
-from flask_socketio import emit, join_room
+from flask_socketio import emit, join_room, leave_room
 import datetime
 from flask import jsonify
 
@@ -69,40 +69,117 @@ def login():
 def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
+    session.pop('room', None)
     return redirect(url_for('login'))
 
 
 @app.route('/find_room', methods=['POST'])
 def find_room():
     roomname = request.form['roomname']
+    roomname = '%' + roomname + '%'
     rooms = Room.select().where(Room.name**roomname)
     return jsonify([room.to_dict() for room in rooms])
+
+
+@app.route('/create_room', methods=['POST'])
+def create_room():
+    roomname = request.form['roomname']
+    if roomname:
+        rooms = Room.select().where(Room.name == roomname)
+        if not rooms:
+            Room.create(name=roomname)
+            return jsonify({'message': 'Your room is created'})
+        else:
+            return jsonify({'message': 'Room with that name is currently created'})
+    else:
+        return jsonify({'message': 'Room must have name. Please enter add roomname to post data'})
+
+
+@socketio.on('change_room', namespace='/test')
+def change_room(data):
+    time = datetime.datetime.now()
+    room = session.get('room', 'general')
+    emit('response',
+         {
+          'data': session.get('username') + ' has left the room.',
+          'username': session.get('username'),
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
+          },
+         room=room
+         )
+    leave_room(room)
+    room = session['room'] = data['roomname']
+    join_room(room)
+    emit('response',
+         {
+          'data': 'Connected',
+          'username': session.get('username'),
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
+          },
+         room=room
+         )
 
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
     time = datetime.datetime.now()
-    join_room('general')
+    room = session.get('room', 'general')
+    join_room(room)
     emit('response',
          {
           'data': 'Connected',
           'username': session.get('username'),
-          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute)
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
           },
-         room='general'
+         room=room
+         )
+
+
+@socketio.on('leave', namespace='/test')
+def leave():
+    time = datetime.datetime.now()
+    room = session.get('room', 'general')
+    if room != 'general':
+        leave_room(room)
+        emit('response',
+             {
+              'data': session.get('username') + ' has left the room.',
+              'username': session.get('username'),
+              'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+              'roomname': room
+              },
+             room=room
+             )
+        session.pop('room', None)
+    room = 'general'
+    join_room(room)
+    emit('response',
+         {
+          'data': 'Connected',
+          'username': session.get('username'),
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
+          },
+         room=room
          )
 
 
 @socketio.on('message', namespace='/test')
 def test_message(message):
     time = datetime.datetime.now()
+    room = session.get('room', 'general')
+
     emit('response',
          {
-          'data': message['data'],
+          'data': message['data'].replace('<script>', '').replace('</script>','').replace('script', ''),
           'username': session.get('username'),
-          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute)
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
           },
-         room='general'
+         room=room
          )
 
 
