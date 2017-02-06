@@ -1,11 +1,38 @@
 $(document).ready(function() {
+          function calc(str){
+            var cmd = str.split(' ')[0];
+            var a = str.split(' ')[1];
+            var b = str.split(' ')[2];
+              switch (cmd){
+                case '/sum':
+                  return +a + +b;
+                case '/mul':
+                  return a * b;
+                case '/dif':
+                  return a - b;
+                case '/div':
+                  return a / b;
+                case '/help':
+                  var message = 'Available commands:<br>/add [skypename]<br>/giphy [expression] - sends random GIF for given expression (optional)<br>'
+                    message +='/alerts off | on [keywords]<br>/alertsoff<br>/alertson [keywords]<br>/help<br>/me [message] - sends special message prepended by your name'
+                  createMessage('', message, '')
+                  return false
+                default:
+                  return str;
+              }
+          }
+
 
           function createMessage(authorName, message, time){
             var html = '<li class="left clearfix">'
-            html += '<div class="name">' + authorName +'</div>'
+            if (authorName) {
+              html += '<div class="name">' + authorName +'</div>'
+            }
             html +='<div class="chat-body1 clearfix">'
             html += '<p>' + message + '</p>'
-            html += '<div class="chat_time pull-right">' + time + '</div></div></li>'
+            if (time) {
+              html += '<div class="chat_time pull-right">' + time + '</div></div></li>'
+            }
             $('#messageChat').append(html)
             $('.name').nameBadge({
                 border: {
@@ -95,7 +122,10 @@ $(document).ready(function() {
 
           $('#sendMessage').click(function(e) {
             e.preventDefault();
-              socket.emit('message', {data: $('#messageText').val()});
+              var msg = calc($('#messageText').val())
+              if(msg){
+                socket.emit('message', {data: msg});
+              }
               $('#messageText').val('');
             });
 
