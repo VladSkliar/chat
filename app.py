@@ -177,10 +177,10 @@ def test_message(message):
     if cmd == '/translate':
         language = msg_list[1]
         text = ' '.join(msg_list[2:])
-        msg = translate(text, language)
+        msg = translate(text, language)+ ' '+ language+' ' + text
     emit('response',
          {
-          'data': msg + ' '+ language + text,
+          'data': msg,
           'username': session.get('username'),
           'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
           'roomname': room
