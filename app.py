@@ -87,7 +87,7 @@ def create_room():
     if roomname:
         rooms = Room.select().where(Room.name == roomname)
         if not rooms:
-            Room.create(name=roomname)
+            Room.create(name=roomname.replace('<script>', '').replace('</script>','').replace('script', ''))
             return jsonify({'message': 'Your room is created'})
         else:
             return jsonify({'message': 'Room with that name is currently created'})
