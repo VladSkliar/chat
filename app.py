@@ -1,10 +1,10 @@
-from flask import Flask, render_template, session, request, redirect, url_for
-from flask_socketio import SocketIO
-from models import User, Room
 from functools import wraps
-from flask_socketio import emit, join_room, leave_room
-import datetime
+from flask import Flask, render_template, session, request, redirect, url_for
 from flask import jsonify
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from models import User, Room
+from translate import translate
+import datetime
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
@@ -171,7 +171,12 @@ def leave():
 def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
-
+    msg_list = message['data'].split(' ')
+    cmd = msg_list[0]
+    if cmd == '/translate':
+        language = msg_list[1]
+        text = ' '.join(msg_list[2:])
+        message['data'] = translate(text, language)
     emit('response',
          {
           'data': message['data'].replace('<script>', '').replace('</script>','').replace('script', ''),
