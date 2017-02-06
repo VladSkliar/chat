@@ -177,7 +177,7 @@ def test_message(message):
     if cmd == '/translate':
         language = msg_list[1]
         text = ' '.join(msg_list[2:])
-        msg = translate(str(text), str(language))
+        msg = translate(text, language)
     emit('response',
          {
           'data': msg,
