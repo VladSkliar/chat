@@ -13,8 +13,8 @@ $(document).ready(function() {
                 case '/div':
                   return a / b;
                 case '/help':
-                  var message = 'Available commands:<br>/add [skypename]<br>/giphy [expression] - sends random GIF for given expression (optional)<br>'
-                    message +='/alerts off | on [keywords]<br>/alertsoff<br>/alertson [keywords]<br>/help<br>/me [message] - sends special message prepended by your name'
+                  var message = 'Available commands:<br>/help<br>/translate [language] [text] - Sends a message to be translated <br>'
+                    message +='/sum [a] [b]- Sends a+b<br>/mul [a] [b] - Sends a*b<br>/dif [a] [b] Sends a-b<br>/div [a] [b] Sends a/b'
                   createMessage('', message, '')
                   return false
                 default:
