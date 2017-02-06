@@ -180,7 +180,7 @@ def test_message(message):
         msg = translate(text, language)
     emit('response',
          {
-          'data': msg,
+          'data': msg + ' '+ language + text,
           'username': session.get('username'),
           'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
           'roomname': room
