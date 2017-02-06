@@ -171,15 +171,16 @@ def leave():
 def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
+    msg = message['data']
     msg_list = message['data'].split(' ')
     cmd = msg_list[0]
     if cmd == '/translate':
         language = msg_list[1]
         text = ' '.join(msg_list[2:])
-        message['data'] = translate(text, language)
+        msg = translate(text, language)
     emit('response',
          {
-          'data': message['data'].replace('<script>', '').replace('</script>','').replace('script', ''),
+          'data': msg,
           'username': session.get('username'),
           'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
           'roomname': room
