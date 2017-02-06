@@ -1,8 +1,8 @@
 from peewee import *
 from playhouse.pool import PooledPostgresqlExtDatabase
 
-db = PooledPostgresqlExtDatabase(database="debfucbpr7af0b", user="iqinufrugqclnw",
-                                 password="03f771066cfbf4d40a2708223aed92bf1814ec3704237851bab66d051e177f3d", host="ec2-54-163-240-7.compute-1.amazonaws.com", port=5432,
+db = PooledPostgresqlExtDatabase(database="tzifpvtf", user="tzifpvtf",
+                                 password="E4nmiUrYsxPsZi2g883Zxp-hE-SXkx-s", host="horton.elephantsql.com", port=5432,
                                  register_hstore=False, autorollback=True)
 db.commit_select = True
 db.autorollback = True
