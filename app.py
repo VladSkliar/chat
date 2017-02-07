@@ -172,12 +172,13 @@ def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
     msg = message['data']
-    msg_list = message['data'].split(' ')
-    cmd = msg_list[0]
-    if cmd == '/translate':
-        language = msg_list[1]
-        text = ' '.join(msg_list[2:])
-        msg = translate(text, language)
+    if isinstance(msg, basestring):
+        msg_list = message['data'].split(' ')
+        cmd = msg_list[0]
+        if cmd == '/translate':
+            language = msg_list[1]
+            text = ' '.join(msg_list[2:])
+            msg = translate(text, language)
     emit('response',
          {
           'data': msg,
