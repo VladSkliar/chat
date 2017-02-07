@@ -4,7 +4,9 @@ from flask import jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from models import User, Room
 from translate import translate
+from get_page import get_page_info
 import datetime
+import re
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
@@ -126,13 +128,19 @@ def change_room(data):
 def test_connect():
     time = datetime.datetime.now()
     room = session.get('room', 'general')
+    link = False
+    image = False
+    title = False
     join_room(room)
     emit('response',
          {
           'data': 'Connected',
           'username': session.get('username'),
           'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
-          'roomname': room
+          'roomname': room,
+          'link': link,
+          'image': image,
+          'title': title
           },
          room=room
          )
@@ -172,19 +180,28 @@ def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
     msg = message['data']
+    link = False
+    image = False
+    title = False
     if isinstance(msg, basestring):
         msg_list = message['data'].split(' ')
         cmd = msg_list[0]
-        if cmd == '/translate':
+        link = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', cmd)
+        if cmd == '/translate' and len(msg_list) >= 3:
             language = msg_list[1]
             text = ' '.join(msg_list[2:])
             msg = translate(text, language)
+        elif link:
+            image, title = get_page_info(link[0])
     emit('response',
          {
           'data': msg,
           'username': session.get('username'),
           'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
-          'roomname': room
+          'roomname': room,
+          'link': link,
+          'image': image,
+          'title': title
           },
          room=room
          )

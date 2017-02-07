@@ -48,6 +48,36 @@ $(document).ready(function() {
             $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
           }
 
+          function createLink(authorName, message, url, imageUrl, time){
+            var html = '<li class="left clearfix">'
+            if (authorName) {
+              html += '<div class="name">' + authorName +'</div>'
+            }
+            html +='<div class="chat-body1 clearfix">'
+            html += '<p><a href="' + url+ '" target="blank">'
+            if(imageUrl){
+              html +='<img src="' + imageUrl + '" width="40" height="40" alt="' +message + '">'
+            }
+            html += message + '</a></p>'
+            if (time) {
+              html += '<div class="chat_time pull-right">' + time + '</div></div></li>'
+            }
+            $('#messageChat').append(html)
+            $('.name').nameBadge({
+                border: {
+                          color: '#ddd',
+                          width: 3
+                        },
+                colors: ['#a3a948'],
+                text: '#fff',
+                size: 50,
+                margin: 5,
+                middlename: true,
+                uppercase: false
+              });
+            $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
+          }
+
           function createRoomLi(name, create){
             var html = ''
             if(create){
@@ -112,7 +142,12 @@ $(document).ready(function() {
                 }else{
                   $('#leaveRoomButton').show()
                 }
-                createMessage(msg.username, msg.data, msg.datetime)
+                if(msg.link.length>0){
+                    console.log('asdasd')
+                    createLink(msg.username, msg.title, msg.data, msg.image ,msg.datetime)
+                  }else{
+                    createMessage(msg.username, msg.data, msg.datetime)
+                  }
             });
 
           function sendMessage(e){
