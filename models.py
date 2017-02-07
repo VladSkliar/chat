@@ -15,7 +15,7 @@ class BaseModel(Model):
 
 class User(BaseModel):
     username = CharField(unique=True)
-    password = IntegerField()
+    password = CharField()
 
     class Meta:
         db_table = 'users'
