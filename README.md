@@ -18,6 +18,7 @@ gunicorn app:app --worker-class eventlet -w 1
 
 ### In developing the site was used
 http://bootsnipp.com/snippets/vrzGb - Free bootstrap template
+
 https://flask-socketio.readthedocs.io/en/latest/ - socketio library for flask
 
 ### View deploy chat
