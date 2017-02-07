@@ -97,7 +97,7 @@ def create_room():
         return jsonify({'message': 'Room must have name. Please enter add roomname to post data'})
 
 
-@socketio.on('change_room', namespace='/test')
+@socketio.on('change_room', namespace='/chat')
 def change_room(data):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
@@ -124,7 +124,7 @@ def change_room(data):
          )
 
 
-@socketio.on('connect', namespace='/test')
+@socketio.on('connect', namespace='/chat')
 def test_connect():
     time = datetime.datetime.now()
     room = session.get('room', 'general')
@@ -146,7 +146,7 @@ def test_connect():
          )
 
 
-@socketio.on('leave', namespace='/test')
+@socketio.on('leave', namespace='/chat')
 def leave():
     time = datetime.datetime.now()
     room = session.get('room', 'general')
@@ -175,7 +175,7 @@ def leave():
          )
 
 
-@socketio.on('message', namespace='/test')
+@socketio.on('message', namespace='/chat')
 def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')

@@ -125,7 +125,7 @@ $(document).ready(function() {
             $('#chatRooms').append(html)
           }
 
-          var namespace = '/test';
+          var namespace = '/chat';
           var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
           socket.on('connect', function() {
