@@ -175,12 +175,6 @@ $(document).ready(function() {
                 getHistoryPage()
             });
 
-          socket.on('responce_story', function(msg) {
-                var story = msg['data']
-                for( var i=0; i<story.length; i++){
-                    createMessage(story[i].username, story[i].data, story[i].datetime, true)
-                  }
-            });
 
           socket.on('response', function(msg) {
                 if($('#chatName').text()!==msg.roomname){
@@ -192,12 +186,15 @@ $(document).ready(function() {
                 }else{
                   $('#leaveRoomButton').show()
                 }
+                console.log(msg)
                 if(msg.link){
                   if(msg.link.length>0){
                       createLink(msg.username, msg.title, msg.data, msg.image ,msg.datetime)
                     }else{
                       createMessage(msg.username, msg.data, msg.datetime, false)
                     }
+                }else{
+                      createMessage(msg.username, msg.data, msg.datetime, false)
                 }
             });
 
@@ -206,7 +203,7 @@ $(document).ready(function() {
               e.preventDefault();
               var msg = calc($('#messageText').val())
                 if(msg){
-                  socket.emit('message', {data: msg});
+                  socket.emit('message', {'data': msg});
                 }
                 $('#messageText').val('');
           }

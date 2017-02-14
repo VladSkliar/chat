@@ -205,20 +205,6 @@ def test_connect():
          room=room
          )
 
-# @socketio.on('load_history', namespace='/chat')
-# def load_history():
-#     roomname = session.get('room', 'general')
-#     roompage = session.get('roompage', 0)
-#     roompage += 1
-#     session['roompage'] = roompage
-#     messages = Message.select().where(Message.roomname==roomname).order_by(Message.datetime.desc()).paginate(roompage, 10)
-#     emit('responce_story',
-#          {
-#             'data': [message.to_dict() for message in messages],
-#             'username': session.get('username')
-#          },
-#          room=roomname
-#          )
 
 @socketio.on('leave', namespace='/chat')
 def leave():
@@ -252,7 +238,6 @@ def leave():
 
 
 def change_session(room='general', roompage=0):
-    global session
     session['room'] = room
     session['roompage'] = roompage
 
@@ -263,7 +248,7 @@ def test_message(message):
     room = session.get('room', 'general')
     msg = message['data']
     user = User.get(User.username == session['username'])
-    Message.create(user=user, roomname=session.get('room', 'general'), message=msg)
+    Message.create(user=user, roomname=session.get('room', 'general'), message=str(msg))
     link = False
     image = False
     title = False
