@@ -1,4 +1,6 @@
 $(document).ready(function() {
+          window.roompage = 0;
+          window.room = 'general';
           function calc(str){
             var cmd = str.split(' ')[0];
             var a = str.split(' ')[1];
@@ -15,14 +17,14 @@ $(document).ready(function() {
                 case '/help':
                   var message = 'Available commands:<br>/help<br>/translate [language] [text] - Sends a message to be translated <br>'
                     message +='/sum [a] [b]- Sends a+b<br>/mul [a] [b] - Sends a*b<br>/dif [a] [b] Sends a-b<br>/div [a] [b] Sends a/b'
-                  createMessage('', message, '')
+                  createMessage('', message, '', false)
                   return false
                 default:
                   return str;
               }
           }
 
-          function createMessage(authorName, message, time){
+          function createMessage(authorName, message, time, history){
             var html = '<li class="left clearfix">'
             if (authorName) {
               html += '<div class="name">' + authorName +'</div>'
@@ -32,7 +34,13 @@ $(document).ready(function() {
             if (time) {
               html += '<div class="chat_time pull-right">' + time + '</div></div></li>'
             }
-            $('#messageChat').append(html)
+            if(history){
+              $('#messageChat').prepend(html)
+              $('.chat_area').scrollTop(10);
+            }else{
+              $('#messageChat').append(html)
+              $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
+            }
             $('.name').nameBadge({
                 border: {
                           color: '#ddd',
@@ -45,7 +53,6 @@ $(document).ready(function() {
                 middlename: true,
                 uppercase: false
               });
-            $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
           }
 
           function createLink(authorName, message, url, imageUrl, time){
@@ -75,7 +82,6 @@ $(document).ready(function() {
                 middlename: true,
                 uppercase: false
               });
-            $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
           }
 
           function createRoomLi(name, create){
@@ -111,13 +117,50 @@ $(document).ready(function() {
                 data: { roomname: $(this).attr('data-name')}
               }).done(function( msg ) {
                   createRoomListMessage(msg['message'])
+                  if(msg['success']){
+                    room = msg['roomname']
+                    window.roompage = 0
+                    socket.emit('change_room', {roomname: msg['roomname']});
+                  $('#chatRooms').empty();
+                  $('#searchRoom').empty()
+                }
                 });
               });
             $('.changeRoom').click(function(e) {
               e.preventDefault();
-              socket.emit('change_room', {roomname: $(this).find('#roomName').text()});
+              window.room = $(this).find('#roomName').text()
+              window.roompage = 0
+              socket.emit('change_room', {roomname: window.room});
+              getHistoryPage()
             });
           }
+          function getHistoryPage(){
+                window.roompage++
+                $.ajax({
+                  method: "GET",
+                  url: "/history",
+                  data: { 'room': window.room, 'roompage':window.roompage}
+                }).done(function( msg ) {
+                  console.log(msg)
+                    var story = msg
+                    for( var i=0; i<story.length; i++){
+                      createMessage(story[i].username, story[i].data, story[i].datetime, true)
+                    }
+                  })
+                }
+          $('.changeRoomUser').click(function(e) {
+              e.preventDefault();
+              username = $(this).find('#userName').text()
+              window.roompage = 0
+              socket.emit('change_room_user', {username: username});
+              window.room = $('#chatName').text()
+              getHistoryPage()
+            });
+          $('.chat_area').scroll(function(){
+            if ( $('.chat_area').scrollTop() == 0 ){
+                  getHistoryPage()
+                }
+          });
 
           function createRoomListMessage(msg){
             var html = '<p>' + msg + '</p>'
@@ -129,7 +172,14 @@ $(document).ready(function() {
           var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
           socket.on('connect', function() {
-                // socket.emit('message', {data: 'I\'m connected!'});
+                getHistoryPage()
+            });
+
+          socket.on('responce_story', function(msg) {
+                var story = msg['data']
+                for( var i=0; i<story.length; i++){
+                    createMessage(story[i].username, story[i].data, story[i].datetime, true)
+                  }
             });
 
           socket.on('response', function(msg) {
@@ -142,13 +192,15 @@ $(document).ready(function() {
                 }else{
                   $('#leaveRoomButton').show()
                 }
-                if(msg.link.length>0){
-                    console.log('asdasd')
-                    createLink(msg.username, msg.title, msg.data, msg.image ,msg.datetime)
-                  }else{
-                    createMessage(msg.username, msg.data, msg.datetime)
-                  }
+                if(msg.link){
+                  if(msg.link.length>0){
+                      createLink(msg.username, msg.title, msg.data, msg.image ,msg.datetime)
+                    }else{
+                      createMessage(msg.username, msg.data, msg.datetime, false)
+                    }
+                }
             });
+
 
           function sendMessage(e){
               e.preventDefault();
@@ -161,7 +213,7 @@ $(document).ready(function() {
           $('#messageForm').submit(function(e) {
               sendMessage(e)
             })
-            $('#messageForm').keydown(function(e) {
+          $('#messageForm').keydown(function(e) {
                 var key = e.which;
                   if (key == 13) {
                     sendMessage(e)
@@ -179,6 +231,8 @@ $(document).ready(function() {
           });
           $('#leaveRoomButton').click(function(e) {
             e.preventDefault();
+              window.room = 'general'
+              window.roompage = 0
               socket.emit('leave');
             });
 

@@ -2,9 +2,8 @@ from functools import wraps
 from flask import Flask, render_template, session, request, redirect, url_for
 from flask import jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from models import User, Room
-from translate import translate
-from get_page import get_page_info
+from models import User, Room, Message
+from utils import translate, get_page_info, generate_roomname
 import datetime
 import re
 
@@ -26,7 +25,12 @@ def login_required(f):
 @app.route('/', methods=['GET'])
 @login_required
 def index():
-    return render_template('index.html')
+    context = {}
+    users = User.select()
+    username = session['username']
+    context['users'] = users
+    context['username'] = username
+    return render_template('index.html', context=context)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -59,7 +63,10 @@ def login():
         user = User.get(User.username == username)
         if str(user.password) == str(password):
             session['username'] = username
-            return redirect(url_for('index'))
+            # session['room'] = 'general'
+            # session['roompage'] = 0
+            change_session()
+            return redirect(url_for('index'), 302)
         response_context['message'] = 'Your user credentials is wrong'
         return render_template('login.html', context=response_context)
     except User.DoesNotExist:
@@ -72,6 +79,7 @@ def logout():
     # remove the username from the session if it's there
     session.pop('username', None)
     session.pop('room', None)
+    session.pop('roompage', None)
     return redirect(url_for('login'))
 
 
@@ -89,12 +97,28 @@ def create_room():
     if roomname:
         rooms = Room.select().where(Room.name == roomname)
         if not rooms:
-            Room.create(name=roomname.replace('<script>', '').replace('</script>','').replace('script', ''))
-            return jsonify({'message': 'Your room is created'})
+            if not re.findall(r'\d+', roomname):
+                Room.create(name=roomname.replace('<script>', '').replace('</script>','').replace('script', ''))
+                return jsonify({'message': 'Your room is created', 'roomname': roomname, 'success': True})
+            else:
+                return jsonify({'message': 'Numbers is not avalible in roomname', 'roomname': roomname, 'success': False})
         else:
-            return jsonify({'message': 'Room with that name is currently created'})
+            return jsonify({'message': 'Room with that name is currently created', 'success': False})
     else:
-        return jsonify({'message': 'Room must have name. Please enter add roomname to post data'})
+        return jsonify({'message': 'Room must have name. Please enter add roomname to post data', 'success': False})
+
+
+@app.route('/history', methods=['GET'])
+def history():
+    if 'roompage' in request.args.keys():
+        roompage = int(request.args.get('roompage', 0))
+    if 'room' in request.args.keys():
+        room = request.args.get('room', 'general')
+    session['room'] = room
+    session['roompage'] = roompage
+    messages = Message.select().where(Message.roomname == room).order_by(Message.datetime.desc()).paginate(roompage, 10)
+    return jsonify([message.to_dict() for message in messages])
+
 
 
 @socketio.on('change_room', namespace='/chat')
@@ -111,7 +135,40 @@ def change_room(data):
          room=room
          )
     leave_room(room)
-    room = session['room'] = data['roomname']
+    room = data['roomname']
+    session['room'] = room
+    session['roompage'] = 0
+    change_session(room=room)
+    join_room(room)
+    emit('response',
+         {
+          'data': 'Connected',
+          'username': session.get('username'),
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
+          },
+         room=room
+         )
+
+
+@socketio.on('change_room_user', namespace='/chat')
+def change_room_user(data):
+    time = datetime.datetime.now()
+    room = session.get('room', 'general')
+    emit('response',
+         {
+          'data': session.get('username') + ' has left the room.',
+          'username': session.get('username'),
+          'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+          'roomname': room
+          },
+         room=room
+         )
+    leave_room(room)
+    room = generate_roomname(session['username'], data['username'])
+    session['room'] = room
+    session['roompage'] = 0
+    change_session(room=room)
     join_room(room)
     emit('response',
          {
@@ -128,6 +185,9 @@ def change_room(data):
 def test_connect():
     time = datetime.datetime.now()
     room = session.get('room', 'general')
+    session['room'] = 'general'
+    session['roompage'] = 0
+    change_session()
     link = False
     image = False
     title = False
@@ -145,6 +205,20 @@ def test_connect():
          room=room
          )
 
+# @socketio.on('load_history', namespace='/chat')
+# def load_history():
+#     roomname = session.get('room', 'general')
+#     roompage = session.get('roompage', 0)
+#     roompage += 1
+#     session['roompage'] = roompage
+#     messages = Message.select().where(Message.roomname==roomname).order_by(Message.datetime.desc()).paginate(roompage, 10)
+#     emit('responce_story',
+#          {
+#             'data': [message.to_dict() for message in messages],
+#             'username': session.get('username')
+#          },
+#          room=roomname
+#          )
 
 @socketio.on('leave', namespace='/chat')
 def leave():
@@ -161,7 +235,9 @@ def leave():
               },
              room=room
              )
-        session.pop('room', None)
+    session['room'] = 'general'
+    session['roompage'] = 0
+    change_session()
     room = 'general'
     join_room(room)
     emit('response',
@@ -175,11 +251,19 @@ def leave():
          )
 
 
+def change_session(room='general', roompage=0):
+    global session
+    session['room'] = room
+    session['roompage'] = roompage
+
+
 @socketio.on('message', namespace='/chat')
 def test_message(message):
     time = datetime.datetime.now()
     room = session.get('room', 'general')
     msg = message['data']
+    user = User.get(User.username == session['username'])
+    Message.create(user=user, roomname=session.get('room', 'general'), message=msg)
     link = False
     image = False
     title = False

@@ -41,6 +41,20 @@
                <ul class="list-unstyled" id='chatRooms'>
 
                </ul>
+               <h4>USERS</h4>
+               <ul class="list-unstyled">
+                {%for user in context.users %}
+                  {%if user.username != context.username%}
+                    <li class="left clearfix changeRoomUser">
+                      <div class="chat-body clearfix">
+                        <div class="header_sec">
+                          <strong class="primary-font" id="userName">{{ user.username }}</strong>
+                        </div>
+                      </div>
+                    </li>
+                  {%endif%}
+                {%endfor%}
+               </ul>
             </div></div>
          </div>
          <!--chat_sidebar-->
