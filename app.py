@@ -2,8 +2,8 @@ from functools import wraps
 from flask import Flask, render_template, session, request, redirect, url_for
 from flask import jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from celery import Celery
-from celery.task import periodic_task
+# from celery import Celery
+# from celery.task import periodic_task
 from models import User, Room, Message
 from utils import translate, get_page_info, generate_roomname, get_news_links
 import datetime
@@ -32,27 +32,27 @@ def login_required(f):
 # Try use celery for post news to general chat
 
 
-def make_celery(app):
-    celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
-                    broker=app.config['CELERY_BROKER_URL'])
-    celery.conf.update(app.config)
-    TaskBase = celery.Task
+# def make_celery(app):
+#     celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
+#                     broker=app.config['CELERY_BROKER_URL'])
+#     celery.conf.update(app.config)
+#     TaskBase = celery.Task
 
-    class ContextTask(TaskBase):
-        abstract = True
+#     class ContextTask(TaskBase):
+#         abstract = True
 
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return TaskBase.__call__(self, *args, **kwargs)
-    celery.Task = ContextTask
-    return celery
+#         def __call__(self, *args, **kwargs):
+#             with app.app_context():
+#                 return TaskBase.__call__(self, *args, **kwargs)
+#     celery.Task = ContextTask
+#     return celery
 
 
-app.config.update(
-    CELERY_BROKER_URL=CELERY_BROKER_URL,
-    CELERY_RESULT_BACKEND=CELERY_RESULT_BACKEND
-)
-celery = make_celery(app)
+# app.config.update(
+#     CELERY_BROKER_URL=CELERY_BROKER_URL,
+#     CELERY_RESULT_BACKEND=CELERY_RESULT_BACKEND
+# )
+# celery = make_celery(app)
 
 
 @app.route('/', methods=['GET'])
@@ -305,31 +305,31 @@ def test_message(message):
          )
 
 
-@periodic_task(run_every=timedelta(seconds=300))
-def post_news():
-    links = get_news_links()
-    link = random.choice(links)
-    image = False
-    title = False
-    if link:
-        time = datetime.datetime.now()
-        image, title = get_page_info(link)
-        """
-        Emit doesn`t work.I dont understand why.
-        All infromation is scrap but not send
-        """
-        socketio.emit('response',
-                      {
-                       'data': link,
-                       'username': 'ChatBot',
-                       'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
-                       'roomname': 'general',
-                       'link': link,
-                       'image': image,
-                       'title': title
-                      },
-                      room='general',
-                      broadcast=True)
+# @periodic_task(run_every=timedelta(seconds=300))
+# def post_news():
+#     links = get_news_links()
+#     link = random.choice(links)
+#     image = False
+#     title = False
+#     if link:
+#         time = datetime.datetime.now()
+#         image, title = get_page_info(link)
+#         """
+#         Emit doesn`t work.I dont understand why.
+#         All infromation is scrap but not send
+#         """
+#         socketio.emit('response',
+#                       {
+#                        'data': link,
+#                        'username': 'ChatBot',
+#                        'datetime': "Created at {:d}:{:02d}".format(time.hour, time.minute),
+#                        'roomname': 'general',
+#                        'link': link,
+#                        'image': image,
+#                        'title': title
+#                       },
+#                       room='general',
+#                       broadcast=True)
 
 
 if __name__ == '__main__':
