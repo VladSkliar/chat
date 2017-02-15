@@ -42,3 +42,13 @@ def generate_roomname(username1, username2):
     list_id.sort()
     roomname = '&'.join([str(x) for x in list_id])
     return roomname
+
+
+def get_news_links():
+    page = requests.get('https://news.ycombinator.com/newest')
+    if page.status_code == 200:
+        tree = html.fromstring(page.content)
+        links = tree.xpath('//td[@class="title"]/a/@href')
+        return links
+    else:
+        return False

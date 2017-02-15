@@ -1,6 +1,4 @@
 $(document).ready(function() {
-          window.roompage = 0;
-          window.room = 'general';
           function calc(str){
             var cmd = str.split(' ')[0];
             var a = str.split(' ')[1];
@@ -119,7 +117,6 @@ $(document).ready(function() {
                   createRoomListMessage(msg['message'])
                   if(msg['success']){
                     room = msg['roomname']
-                    window.roompage = 0
                     socket.emit('change_room', {roomname: msg['roomname']});
                   $('#chatRooms').empty();
                   $('#searchRoom').empty()
@@ -128,37 +125,20 @@ $(document).ready(function() {
               });
             $('.changeRoom').click(function(e) {
               e.preventDefault();
-              window.room = $(this).find('#roomName').text()
-              window.roompage = 0
-              socket.emit('change_room', {roomname: window.room});
-              getHistoryPage()
+              socket.emit('change_room', {roomname: $(this).find('#roomName').text()});
+              socket.emit('get_history')
             });
           }
-          function getHistoryPage(){
-                window.roompage++
-                $.ajax({
-                  method: "GET",
-                  url: "/history",
-                  data: { 'room': window.room, 'roompage':window.roompage}
-                }).done(function( msg ) {
-                  console.log(msg)
-                    var story = msg
-                    for( var i=0; i<story.length; i++){
-                      createMessage(story[i].username, story[i].data, story[i].datetime, true)
-                    }
-                  })
-                }
+
           $('.changeRoomUser').click(function(e) {
               e.preventDefault();
-              username = $(this).find('#userName').text()
-              window.roompage = 0
-              socket.emit('change_room_user', {username: username});
-              window.room = $('#chatName').text()
-              getHistoryPage()
+              socket.emit('change_room_user', {username: $(this).find('#userName').text()});
+              socket.emit('get_history')
             });
+
           $('.chat_area').scroll(function(){
             if ( $('.chat_area').scrollTop() == 0 ){
-                  getHistoryPage()
+                  socket.emit('get_history')
                 }
           });
 
@@ -172,7 +152,16 @@ $(document).ready(function() {
           var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
 
           socket.on('connect', function() {
-                getHistoryPage()
+                socket.emit('get_history')
+            });
+          socket.on('history_info', function(msg) {
+            console.log(msg)
+              if(window.username == msg.username){
+                var story = msg.data
+                    for( var i=0; i<story.length; i++){
+                      createMessage(story[i].username, story[i].data, story[i].datetime, true)
+                    }
+              }
             });
 
 
@@ -186,7 +175,6 @@ $(document).ready(function() {
                 }else{
                   $('#leaveRoomButton').show()
                 }
-                console.log(msg)
                 if(msg.link){
                   if(msg.link.length>0){
                       createLink(msg.username, msg.title, msg.data, msg.image ,msg.datetime)
@@ -228,9 +216,8 @@ $(document).ready(function() {
           });
           $('#leaveRoomButton').click(function(e) {
             e.preventDefault();
-              window.room = 'general'
-              window.roompage = 0
               socket.emit('leave');
+              socket.emit('get_history')
             });
 
         });
