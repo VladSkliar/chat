@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from functools import wraps
 from flask import Flask, render_template, session, request, redirect, url_for
 from flask import jsonify
@@ -94,7 +95,7 @@ def login():
     response_context = {}
     try:
         user = User.get(User.username == username)
-        if str(user.password) == str(password):
+        if unicode(user.password) == unicode(password):
             session['username'] = username
             session['room'] = 'general'
             session['roompage'] = 0
@@ -273,14 +274,16 @@ def leave():
 
 @socketio.on('message', namespace='/chat')
 def test_message(message):
+    print message
     time = datetime.datetime.now()
     room = session.get('room', 'general')
     msg = message['data']
     user = User.get(User.username == session['username'])
-    Message.create(user=user, roomname=session.get('room', 'general'), message=str(msg))
+    Message.create(user=user, roomname=session.get('room', 'general'), message=unicode(msg))
     link = False
     image = False
     title = False
+    print msg
     if isinstance(msg, basestring):
         msg_list = message['data'].split(' ')
         cmd = msg_list[0]
@@ -291,6 +294,7 @@ def test_message(message):
             msg = translate(text, language)
         elif link:
             image, title = get_page_info(link[0])
+    print msg
     emit('response',
          {
           'data': msg,
