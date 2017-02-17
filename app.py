@@ -274,7 +274,6 @@ def leave():
 
 @socketio.on('message', namespace='/chat')
 def test_message(message):
-    print message
     time = datetime.datetime.now()
     room = session.get('room', 'general')
     msg = message['data']
@@ -283,7 +282,6 @@ def test_message(message):
     link = False
     image = False
     title = False
-    print msg
     if isinstance(msg, basestring):
         msg_list = message['data'].split(' ')
         cmd = msg_list[0]
@@ -294,7 +292,6 @@ def test_message(message):
             msg = translate(text, language)
         elif link:
             image, title = get_page_info(link[0])
-    print msg
     emit('response',
          {
           'data': msg,
