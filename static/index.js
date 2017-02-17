@@ -24,8 +24,14 @@ $(document).ready(function() {
 
           function createMessage(authorName, message, time, history){
             var html = '<li class="left clearfix">'
+
+            var regexp = /[а-яё]/i;
             if (authorName) {
+              if(regexp.test(authorName)){
+                html += '<div class="uname">'+ authorName +'</div>'
+              }else{
                 html += '<div class="name">'+ authorName +'</div>'
+              }
             }
             html +='<div class="chat-body1 clearfix">'
             html += '<p>' + message + '</p>'
@@ -39,18 +45,18 @@ $(document).ready(function() {
               $('#messageChat').append(html)
               $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
             }
-            // $('.name:not(:has(.only))').nameBadge({
-            //     border: {
-            //               color: '#ddd',
-            //               width: 3
-            //             },
-            //     colors: ['#a3a948'],
-            //     text: '#fff',
-            //     size: 50,
-            //     margin: 5,
-            //     middlename: true,
-            //     uppercase: false
-            //   });
+            $('.name').nameBadge({
+                border: {
+                          color: '#ddd',
+                          width: 3
+                        },
+                colors: ['#a3a948'],
+                text: '#fff',
+                size: 50,
+                margin: 5,
+                middlename: true,
+                uppercase: false
+              });
           }
 
           function createLink(authorName, message, url, imageUrl, time){
